@@ -1,1 +1,1 @@
-# C-Custom-Discord-Rich-Presence
+# C++-Custom-Discord-Rich-Presence
