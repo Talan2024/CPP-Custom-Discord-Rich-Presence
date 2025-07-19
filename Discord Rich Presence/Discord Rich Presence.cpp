@@ -11,6 +11,11 @@ std::string state;
 std::string details;
 std::string large_text;
 std::string large_image;
+std::string small_text;
+std::string small_image;
+std::string party_id;
+int people_in_party;
+int party_size;
 
 //get the number of bytes  written in WriteFile function
 DWORD bytesWritten = 0;
@@ -32,19 +37,38 @@ void get_input() {
     std::getline(std::cin, details);
 
 
-    
+
     std::cout << "enter state:";
     std::getline(std::cin, state);
-  
+
 
     std::cout << "enter large image(can use url to gif ex.https://c.tenor.com/WMiHLnhVvdUAAAAd/tenor.gif):";
     std::getline(std::cin, large_image);
 
     std::cout << "enter large text:";
     std::getline(std::cin, large_text);
- 
 
-    
+    std::cout << "enter small text:";
+    std::getline(std::cin, small_text);
+
+    std::cout << "enter small image:";
+    std::getline(std::cin, small_image);
+
+    std::cout << "enter party_id:";
+    std::getline(std::cin, party_id);
+
+    std::cout << "enter people_in_party:";
+    std::cin >> people_in_party;
+    std::cin.ignore();
+
+    std::cout << "enter party_size:";
+    std::cin >> party_size;
+    std::cin.ignore();
+
+
+
+
+
 }
 
 
@@ -124,26 +148,32 @@ void identify() {
 
 
 void set_activity() {
-
-    //json to set activity for discord rich presense
     std::string activity = R"({
-     "cmd": "SET_ACTIVITY",
-     "args": {
-         "pid": )" + std::to_string(GetCurrentProcessId()) + R"(,
-         "activity": {
-             "state": ")" + state + R"(",
-             "details": ")" + details + R"(",
-             "assets": {
-                 "large_text": ")" + large_text + R"(",
-                 "large_image": ")" + large_image + R"("
-             },
-             "timestamps": {
-                 "start": )" + std::to_string(time(NULL)) + R"(
-             }
-         }
-     },
-     "nonce": "set_activity_nonce"
- })";
+    "cmd": "SET_ACTIVITY",
+    "args": {
+        "pid": )" + std::to_string(GetCurrentProcessId()) + R"(,
+        "activity": {
+            "state": ")" + state + R"(",
+            "details": ")" + details + R"(",
+            "timestamps": {
+                "start": )" + std::to_string(time(NULL)) + R"(
+            },
+            "assets": {
+                "large_image": ")" + large_image + R"(",
+                "large_text": ")" + large_text + R"(",
+                "small_image": ")" + small_image + R"(",
+                "small_text": ")" + small_text + R"("
+            },
+            "party": {
+                "id": ")" + party_id + R"(",
+                "size": [)" + std::to_string(people_in_party) + R"(, )" + std::to_string(party_size) + R"(]
+            }
+        }
+    },
+    "nonce": "set_activity_nonce"
+})";
+
+
     //opcode for FRAME/commands
     int OPCODE_ACTIVITY = 1;
     //get size of json activity string
@@ -217,7 +247,7 @@ bool wait_for_ready() {
             memcpy(&opcode, buffer + 4, 4);
             //get the length from the next 4 bytes of the buffer
             memcpy(&length, buffer + 4, 4);
-           
+
             //extract the json payload starting at byte 8
             std::string payload(buffer + 8, length);
 
@@ -243,11 +273,11 @@ int main() {
     //check if the pipe connection succeeded
     if (handshake() == 1) {
         return 1;
-    
+
     }
 
 
-   
+
     identify();
     wait_for_ready();
     set_activity();
